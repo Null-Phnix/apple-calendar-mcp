@@ -1,6 +1,12 @@
 # Apple Calendar MCP Server
 
-A comprehensive Model Context Protocol (MCP) server that provides Claude with full access to Apple Calendar for smart scheduling, calendar management, and time management assistance.
+[![macOS Only](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
+[![Node.js 20+](https://img.shields.io/badge/node-20%2B-green.svg)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+> **Note:** This MCP server requires macOS with Apple Calendar.
+
+A Model Context Protocol (MCP) server that provides Claude with full access to Apple Calendar for smart scheduling, calendar management, and time management assistance.
 
 ## Features
 
@@ -70,7 +76,7 @@ A comprehensive Model Context Protocol (MCP) server that provides Claude with fu
        "apple-calendar": {
          "command": "node",
          "args": [
-           "/Users/josii/mcp-servers/calendar/dist/index.js"
+           "/path/to/apple-calendar-mcp/dist/index.js"
          ]
        }
      }
@@ -250,4 +256,4 @@ MIT
 
 ## Author
 
-Built for Claude Code MCP integration
+Built by [Null-Phnix](https://github.com/Null-Phnix)
