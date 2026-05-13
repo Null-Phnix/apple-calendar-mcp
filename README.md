@@ -8,6 +8,36 @@
 
 A Model Context Protocol (MCP) server that provides Claude with full access to Apple Calendar for smart scheduling, calendar management, and time management assistance.
 
+---
+
+## Table of Contents
+
+- [Why I Built This](#why-i-built-this)
+- [Features](#features)
+- [Current Pain Points](#current-pain-points)
+- [End Goals](#end-goals--where-this-is-headed)
+- [Installation](#installation)
+- [Usage Examples](#usage-examples)
+- [Architecture](#architecture)
+- [Technical Details](#technical-details)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Troubleshooting](#troubleshooting)
+- [Future Enhancements](#future-enhancements)
+- [License](#license)
+
+---
+
+## Why I Built This
+
+Apple's Calendar.app is fine for looking at your schedule. It's garbage for adding events. "Create an event Team Meeting tomorrow at 2pm in the Work calendar" — you can't do that without clicking 6 times. Natural language scheduling doesn't exist in Apple's UI.
+
+I wanted my agent to handle scheduling like it handles everything else: via tool calls. "Lunch with Sarah at 1pm" → calendar entry. "Find free time tomorrow for a 1-hour meeting" → time slot suggestions. "Am I free Friday at 3pm?" → yes/no with conflict details.
+
+This is an MCP server because Claude Code should be able to schedule things the same way it edits code or runs tests — as a tool call, not a manual GUI interaction.
+
+---
+
 ## Features
 
 ### Calendar Management
@@ -43,6 +73,45 @@ A Model Context Protocol (MCP) server that provides Claude with full access to A
   - Meeting density (meetings per day)
   - Total time spent in meetings
   - Daily breakdown of schedule
+
+---
+
+## Current Pain Points
+
+These are the battles I'm actively fighting:
+
+1. **AppleScript is the only interface** — Calendar.app has no public API. Everything goes through `osascript` which is brittle, slow, and has no error handling. If Calendar.app is in a weird state (syncing, locked, backgrounded), AppleScript hangs or returns garbage.
+
+2. **macOS-only** — This inherently locks out my Linux desktop. I can't run this on my main machine. It only works on the MacBook at work. For an agent ecosystem that should run everywhere, this is a limitation I haven't solved.
+
+3. **Permission dialogs are user-hostile** — "Allow Terminal to control Calendar?" — macOS shows this dialog once, and if the user clicks "Don't Allow" by accident, the server fails silently forever. Resetting permissions requires deep System Preferences navigation.
+
+4. **No recurring events** — The server can create one-off events but not recurring ones ("every Monday at 9am"). AppleScript supports RRULE but the MCP server doesn't expose it yet. This is the most requested missing feature.
+
+5. **Date parsing edge cases** — `chrono-node` handles 95% of natural language dates but fails on ambiguous cases ("next week" when it's Sunday, "this weekend" on a Saturday). I have fallback logic but it's heuristic.
+
+6. **No sync status awareness** — Calendar.app might be syncing with iCloud when you create an event. The AppleScript returns success but the event doesn't appear for 30 seconds. The server has no way to know if the event actually landed.
+
+---
+
+## End Goals — Where This Is Headed
+
+### Short Term (now → 3 months)
+- **Recurring events** — expose RRULE through AppleScript, support "every Monday at 9am"
+- **Better permission handling** — detect permission failures, provide clear instructions for fixing
+- **Sync status polling** — verify events actually appeared after creation
+
+### Medium Term (3–6 months)
+- **Cross-platform calendar** — abstract the calendar backend so it works with Google Calendar API (Linux) and Apple Calendar (macOS) through the same MCP interface
+- **Integration with agent ecosystem** — JobHound schedules interview reminders, Blackreach schedules research deadlines, all through the same calendar interface
+- **Proactive scheduling** — "You have 3 hours free tomorrow afternoon — want me to schedule that Deep Work block?"
+
+### Long Term (6–12 months)
+- **Universal calendar agent** — one MCP server that talks to Apple Calendar, Google Calendar, Outlook, and any CalDAV server
+- **Schedule optimization** — analyze your patterns, suggest better meeting times, protect Deep Work blocks, automatically decline low-priority conflicts
+- **Integration with Bifrost** — mythology research deadlines, agent task schedules, all visible in one calendar view
+
+---
 
 ## Installation
 
@@ -86,6 +155,8 @@ A Model Context Protocol (MCP) server that provides Claude with full access to A
 4. **Restart Claude Code:**
 
    The server will auto-start when Claude Code launches.
+
+---
 
 ## Usage Examples
 
@@ -148,6 +219,8 @@ The server understands:
 "How busy am I this month?"
 ```
 
+---
+
 ## Architecture
 
 ```
@@ -168,6 +241,8 @@ The server understands:
 │   └── calendar.db              # SQLite database (auto-created)
 └── dist/                        # Compiled JavaScript
 ```
+
+---
 
 ## Technical Details
 
@@ -193,6 +268,8 @@ The server understands:
 - Business hours filtering
 - Optimal time suggestions based on preferences
 
+---
+
 ## Configuration
 
 Default settings (stored in SQLite):
@@ -200,6 +277,8 @@ Default settings (stored in SQLite):
 - `default_event_duration`: 1 hour (3600000 ms)
 - `business_hours_start`: 9 (9am)
 - `business_hours_end`: 17 (5pm)
+
+---
 
 ## Development
 
@@ -217,6 +296,8 @@ npm run dev
 ```bash
 npx @modelcontextprotocol/inspector npx tsx src/index.ts
 ```
+
+---
 
 ## Troubleshooting
 
@@ -239,6 +320,8 @@ npx @modelcontextprotocol/inspector npx tsx src/index.ts
 2. Check if Calendar.app is running
 3. Refresh Calendar.app view
 
+---
+
 ## Future Enhancements
 
 Potential features for v2:
@@ -249,6 +332,8 @@ Potential features for v2:
 - iCal import/export
 - Proactive schedule optimization
 - ML-based event categorization
+
+---
 
 ## License
 
